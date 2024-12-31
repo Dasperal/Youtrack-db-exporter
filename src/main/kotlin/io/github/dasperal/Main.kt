@@ -39,6 +39,7 @@ object Main
         store.executeInTransaction {
             find_issue_links(it.getAll("IssueLinkPrototype"))
             export_issue_links(issues_with_links(it), export_root)
+            export_issue_comments(it.findWithLinks("Issue", "comments"), export_root)
         }
     }
 
@@ -105,6 +106,28 @@ object Main
             links.add(issue_id(issue))
         }
         return links.toString()
+    }
+
+    private fun export_issue_comments(issue_entities: EntityIterable, export_root: Path)
+    {
+        val csv = StringJoiner("\n")
+        csv.add("issue;created_at;author;text")
+
+        for(entity in issue_entities)
+        {
+            for(comment in entity.getLinks("comments"))
+            {
+                val line = StringJoiner(";").add(issue_id(entity))
+                line.add((comment.getProperty("created") as Long).toString())
+                line.add((comment.getLink("author")?.getProperty("login") as String))
+                line.add("\"${comment.getBlobString("text")?.replace("\"", "\"\"")}\"")
+                csv.add(line.toString())
+            }
+        }
+
+        val links_file_path = export_root.resolve("issue_comments.csv")
+        println("Writing issue comments to \"${links_file_path.toAbsolutePath()}\"")
+        Files.writeString(links_file_path, csv.toString())
     }
 
     private fun issue_id(entity: Entity): String
