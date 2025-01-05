@@ -1,4 +1,4 @@
-// Copyright © 2024 Leonid Murin (Dasperal)
+// Copyright © 2024-2025 Leonid Murin (Dasperal)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import jetbrains.exodus.env.Environments.newInstance
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.Instant
 import java.util.StringJoiner
 
 object Main
@@ -118,7 +119,7 @@ object Main
             for(comment in entity.getLinks("comments"))
             {
                 val line = StringJoiner(";").add(issue_id(entity))
-                line.add((comment.getProperty("created") as Long).toString())
+                line.add(Instant.ofEpochMilli(comment.getProperty("created") as Long).toString())
                 line.add((comment.getLink("author")?.getProperty("login") as String))
                 line.add("\"${comment.getBlobString("text")?.replace("\"", "\"\"")}\"")
                 csv.add(line.toString())
